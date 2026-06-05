@@ -40,8 +40,8 @@
 # COMMAND ----------
 
 dbutils.widgets.dropdown("entorno", "dev", ["dev", "prod"], "Entorno")
-dbutils.widgets.text("storage_account", "stecvprod", "Storage Account")
-dbutils.widgets.text("secret_scope", "kv-ecv", "Secret Scope")
+dbutils.widgets.text("storage_account", "saencuestadev", "Storage Account")
+dbutils.widgets.text("secret_scope", "akv-ecv", "Secret Scope")
 dbutils.widgets.text("storage_credential", "sc_databricks_ecv", "Storage Credential")
 
 entorno            = dbutils.widgets.get("entorno")
@@ -259,5 +259,4 @@ print("  1. Subir CSV ECV al contenedor raw bajo raw/ecv/<año>/")
 print("  2. Subir Excel DIVIPOLA al contenedor raw bajo raw/divipola/")
 print("  3. Ejecutar nb_01_bronze_ingesta")
 
-dbutils.notebook.exit("SETUP_OK")
-
+#dbutils.notebook.exit("SETUP_OK")
