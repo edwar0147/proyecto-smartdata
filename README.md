@@ -208,16 +208,16 @@ Modelo dimensional estrella optimizado para análisis.
                    └────────────────┘
 ```
 
-| Tabla Gold | Tipo | Registros | Descripción |
+| Tabla Gold | Tipo | Descripción |
 |-----------|------|-----------|-------------|
-| `dim_persona` | Dimensión | 309.512 | Demografía + migración + bienestar |
-| `dim_vivienda` | Dimensión | 97.214 | Materiales + servicios + riesgos |
-| `dim_educacion` | Dimensión | 285.483 | Niveles + apoyos económicos |
-| `dim_ubicacion` | Dimensión | 9 | Regiones DANE |
-| `dim_tiempo` | Dimensión | 2 | Años de encuesta |
-| `fac_ecv` | Hechos | 309.512 | Métricas + FKs a dimensiones |
-| `kpi_becas_anuales` | Agregado | 2 | KPIs de becas por año |
-| `kpi_condiciones_vida_region` | Agregado | 9 | KPIs de vivienda por región |
+| `dim_persona` | Dimensión | Demografía + migración + bienestar |
+| `dim_vivienda` | Dimensión | Materiales + servicios + riesgos |
+| `dim_educacion` | Dimensión | Niveles + apoyos económicos |
+| `dim_ubicacion` | Dimensión | Regiones DANE |
+| `dim_tiempo` | Dimensión | Años de encuesta |
+| `fac_ecv` | Hechos | Métricas + FKs a dimensiones |
+| `kpi_becas_anuales` | Agregado | KPIs de becas por año |
+| `kpi_condiciones_vida_region` | Agregado | KPIs de vivienda por región |
 
 ### 🔌 Serving Layer (Azure SQL)
 
