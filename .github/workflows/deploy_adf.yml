@@ -29,7 +29,7 @@ jobs:
           resourceGroupName: 'rg-proyecto-sm' 
           
           # Aquí agregamos la carpeta /datafactory y el nombre de tu ADF de desarrollo
-          template: './datafactory/adf-ecv-dev/ARMTemplateForFactory.json'
+          template: './adf-ecv-dev/ARMTemplateForFactory.json'
           
           # Aquí lo mismo, y al final le indicamos el nombre del ADF de producción
-          parameters: './datafactory/adf-ecv-dev/ARMTemplateParametersForFactory.json factoryName=adf-ecv-prod'
+          parameters: './adf-ecv-dev/ARMTemplateParametersForFactory.json factoryName=adf-ecv-prod'
