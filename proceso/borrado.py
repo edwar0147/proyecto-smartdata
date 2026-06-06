@@ -1,3 +1,4 @@
+# Databricks notebook source
 dbutils.widgets.dropdown("entorno", "dev", ["dev", "prod"], "Entorno")
 entorno = dbutils.widgets.get("entorno")
 catalog_name = f"ecv_{entorno}"
@@ -13,3 +14,11 @@ for t in ["caract_comp_hogar", "datos_vivienda", "educacion"]:
 
 # Las DIVIPOLA y MySQL usan overwrite, no necesitan borrarse
 print("\nListo, ahora puedes ejecutar nb_01")
+
+# COMMAND ----------
+
+# MAGIC %md
+
+# COMMAND ----------
+
+# MAGIC %md
