@@ -96,9 +96,13 @@ Azure Data Factory (pl_ecv_master)
 
 ADF coordina servicios heterogéneos (Storage, Databricks, Azure SQL) mientras que Databricks Workflows orquesta internamente las 6 tareas PySpark.
 
-![Pipeline ADF](evidencias/adf_pipeline_master.png)
+![Pipeline ADF]
+<img width="793" height="234" alt="image" src="https://github.com/user-attachments/assets/c1daef95-2ae7-4e19-981b-c476c1ce685f" />
 
-![Workflow Databricks](evidencias/databricks_workflow_verde.png)
+
+![Workflow Databricks]
+<img width="809" height="268" alt="image" src="https://github.com/user-attachments/assets/77f09b23-d45f-4398-8967-93f0583d419b" />
+
 
 ---
 
