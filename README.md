@@ -1,4 +1,4 @@
-# Pipeline Medallón — Encuesta de Calidad de Vida (ECV) DANE Colombia
+<img width="2816" height="1536" alt="Arquitectura" src="https://github.com/user-attachments/assets/77a96a83-9a65-4b48-8ab2-bb1fb9db92c9" /># Pipeline Medallón — Encuesta de Calidad de Vida (ECV) DANE Colombia
 
 Arquitectura Medallion en Azure Databricks con orquestación híbrida ADF + Databricks Workflows y CI/CD completo.
 
@@ -56,6 +56,10 @@ Este proyecto migra un trabajo académico de BI originalmente construido con SQL
                         │  🗄️ Azure SQL Database ──► 📊 Power BI          │
                         └──────────────────────────────────────────────────┘
 ```
+
+<img width="2816" height="1536" alt="Arquitectura" src="https://github.com/user-attachments/assets/e79a0030-24e3-4e19-b709-777d9aa6d188" />
+
+
 
 ### Servicios Azure Utilizados (10 servicios)
 
