@@ -1,0 +1,457 @@
+name: Deploy ECV Pipeline to Databricks
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v3
+
+    - name: Install jq & curl
+      run: sudo apt-get update && sudo apt-get install -y jq curl
+
+    - name: Deploy notebooks to Production folder
+      run: |
+        HOST=${{ secrets.DATABRICKS_HOST }}
+        TOKEN=${{ secrets.DATABRICKS_TOKEN }}
+        DEST_BASE="/proyecto-smartdata-prod/proceso"
+
+        NOTEBOOKS=("nb_00_setup"
+                   "nb_01_bronze_ingesta_v4"
+                   "nb_02_silver_transform_v3"
+                   "nb_03_gold_dimensiones_v3"
+                   "nb_04_gold_hechos_v2"
+                   "nb_05_serving"
+                   )
+
+        echo "Creando carpeta destino: $DEST_BASE"
+        curl -s -X POST \
+          -H "Authorization: Bearer $TOKEN" \
+          -H "Content-Type: application/json" \
+          -d "{\"path\":\"$DEST_BASE\"}" \
+          "$HOST/api/2.0/workspace/mkdirs"
+
+        for nb in "${NOTEBOOKS[@]}"; do
+          FILE="proceso/${nb}.py"
+          if [ ! -f "$FILE" ]; then
+            echo "⚠️  Archivo no encontrado: $FILE - buscando sin extension..."
+            FILE="proceso/${nb}"
+          fi
+
+          if [ -f "$FILE" ]; then
+            dest_path="$DEST_BASE/$nb"
+            echo "Importando $FILE → $dest_path"
+            response=$(curl -s -X POST \
+              -H "Authorization: Bearer $TOKEN" \
+              -H "Content-Type: multipart/form-data" \
+              -F "path=$dest_path" \
+              -F "format=SOURCE" \
+              -F "language=PYTHON" \
+              -F "overwrite=true" \
+              -F "content=@$FILE" \
+              "$HOST/api/2.0/workspace/import")
+            echo "Response: $response"
+          else
+            echo "❌ No se encontro: proceso/${nb}.py ni proceso/${nb}"
+            exit 1
+          fi
+        done
+
+    - name: Check if workflow exists and delete if necessary
+      run: |
+        HOST=${{ secrets.DATABRICKS_HOST }}
+        TOKEN=${{ secrets.DATABRICKS_TOKEN }}
+        WORKFLOW_NAME="WF_PROD_ECV_DANE"
+
+        echo "Verificando si existe el workflow: $WORKFLOW_NAME"
+
+        workflows_response=$(curl -s -X GET \
+          -H "Authorization: Bearer $TOKEN" \
+          "$HOST/api/2.1/jobs/list")
+
+        existing_job_id=$(echo "$workflows_response" | jq -r --arg name "$WORKFLOW_NAME" '.jobs[]? | select(.settings.name == $name) | .job_id')
+
+        if [ "$existing_job_id" != "" ] && [ "$existing_job_id" != "null" ]; then
+          echo "Workflow encontrado con ID: $existing_job_id. Eliminando..."
+          delete_response=$(curl -s -X POST \
+            -H "Authorization: Bearer $TOKEN" \
+            -H "Content-Type: application/json" \
+            -d "{\"job_id\": $existing_job_id}" \
+            "$HOST/api/2.1/jobs/delete")
+          echo "Delete response: $delete_response"
+        else
+          echo "No se encontro workflow existente con nombre: $WORKFLOW_NAME"
+        fi
+
+    - name: Get existing cluster ID
+      run: |
+        HOST=${{ secrets.DATABRICKS_HOST }}
+        TOKEN=${{ secrets.DATABRICKS_TOKEN }}
+        CLUSTER_NAME="cluster-dev"
+
+        echo "Buscando cluster existente: $CLUSTER_NAME"
+
+        clusters_response=$(curl -s -X GET \
+          -H "Authorization: Bearer $TOKEN" \
+          "$HOST/api/2.0/clusters/list")
+
+        cluster_id=$(echo "$clusters_response" | jq -r --arg name "$CLUSTER_NAME" '.clusters[]? | select(.cluster_name == $name) | .cluster_id')
+
+        if [ "$cluster_id" != "" ] && [ "$cluster_id" != "null" ]; then
+          echo "✅ Cluster encontrado: $CLUSTER_NAME con ID: $cluster_id"
+          echo "CLUSTER_ID=$cluster_id" >> $GITHUB_ENV
+        else
+          echo "❌ No se encontro el cluster: $CLUSTER_NAME"
+          echo "Clusters disponibles:"
+          echo "$clusters_response" | jq -r '.clusters[]? | .cluster_name'
+          exit 1
+        fi
+
+    - name: Create Databricks Workflow WF_PROD_ECV_DANE
+      run: |
+        HOST=${{ secrets.DATABRICKS_HOST }}
+        TOKEN=${{ secrets.DATABRICKS_TOKEN }}
+        DEST_BASE="/proyecto-smartdata-prod/proceso"
+        CLUSTER_ID="${{ env.CLUSTER_ID }}"
+
+        echo "Creando workflow: WF_PROD_ECV_DANE con cluster ID: $CLUSTER_ID"
+
+        cat > workflow_config.json << EOF
+        {
+          "name": "WF_PROD_ECV_DANE",
+          "format": "MULTI_TASK",
+          "tasks": [
+            {
+              "task_key": "nb_00_prep_amb",
+              "description": "Preparacion de ambiente: catalogo, schemas, tablas de auditoria",
+              "notebook_task": {
+                "notebook_path": "$DEST_BASE/nb_00_setup",
+                "source": "WORKSPACE",
+                "base_parameters": {
+                  "entorno": "prod"
+                }
+              },
+              "existing_cluster_id": "$CLUSTER_ID",
+              "timeout_seconds": 300,
+              "max_retries": 2
+            },
+            {
+              "task_key": "nb_01_bronze",
+              "description": "Ingesta Bronze: CSV ECV + Excel DIVIPOLA + MySQL DIVIPOLA",
+              "notebook_task": {
+                "notebook_path": "$DEST_BASE/nb_01_bronze_ingesta_v4",
+                "source": "WORKSPACE",
+                "base_parameters": {
+                  "entorno": "prod",
+                  "anios": "2017,2018",
+                  "cargar_divipola": "si",
+                  "cargar_mysql": "si"
+                }
+              },
+              "existing_cluster_id": "$CLUSTER_ID",
+              "timeout_seconds": 1800,
+              "max_retries": 2,
+              "depends_on": [
+                {
+                  "task_key": "nb_00_prep_amb"
+                }
+              ]
+            },
+            {
+              "task_key": "nb_02_silver",
+              "description": "Transformacion Silver: limpieza, decodificacion, conformado",
+              "notebook_task": {
+                "notebook_path": "$DEST_BASE/nb_02_silver_transform_v3",
+                "source": "WORKSPACE",
+                "base_parameters": {
+                  "entorno": "prod"
+                }
+              },
+              "existing_cluster_id": "$CLUSTER_ID",
+              "timeout_seconds": 1200,
+              "max_retries": 2,
+              "depends_on": [
+                {
+                  "task_key": "nb_01_bronze"
+                }
+              ]
+            },
+            {
+              "task_key": "nb_03_gold_dim",
+              "description": "Gold Dimensiones: 5 dimensiones del modelo estrella",
+              "notebook_task": {
+                "notebook_path": "$DEST_BASE/nb_03_gold_dimensiones_v3",
+                "source": "WORKSPACE",
+                "base_parameters": {
+                  "entorno": "prod"
+                }
+              },
+              "existing_cluster_id": "$CLUSTER_ID",
+              "timeout_seconds": 900,
+              "max_retries": 2,
+              "depends_on": [
+                {
+                  "task_key": "nb_02_silver"
+                }
+              ]
+            },
+            {
+              "task_key": "nb_04_gold_hechos",
+              "description": "Gold Hechos: tabla de hechos fac_ecv + KPIs agregados",
+              "notebook_task": {
+                "notebook_path": "$DEST_BASE/nb_04_gold_hechos_v2",
+                "source": "WORKSPACE",
+                "base_parameters": {
+                  "entorno": "prod"
+                }
+              },
+              "existing_cluster_id": "$CLUSTER_ID",
+              "timeout_seconds": 900,
+              "max_retries": 2,
+              "depends_on": [
+                {
+                  "task_key": "nb_03_gold_dim"
+                }
+              ]
+            },
+            {
+              "task_key": "nb_05_serving",
+              "description": "Serving Layer: sincronizacion Gold a Azure SQL Database",
+              "notebook_task": {
+                "notebook_path": "$DEST_BASE/nb_05_serving",
+                "source": "WORKSPACE",
+                "base_parameters": {
+                  "entorno": "prod",
+                  "secret_scope": "kv-ecv",
+                  "modo_escritura": "overwrite"
+                }
+              },
+              "existing_cluster_id": "$CLUSTER_ID",
+              "timeout_seconds": 3600,
+              "max_retries": 2,
+              "depends_on": [
+                {
+                  "task_key": "nb_04_gold_hechos"
+                }
+              ]
+            }
+          ],
+          "schedule": {
+            "quartz_cron_expression": "0 0 2 1 * ?",
+            "timezone_id": "America/Bogota",
+            "pause_status": "PAUSED"
+          },
+          "email_notifications": {
+            "on_failure": [],
+            "on_success": [],
+            "no_alert_for_skipped_runs": false
+          },
+          "timeout_seconds": 7200,
+          "max_concurrent_runs": 1,
+          "tags": {
+            "environment": "production",
+            "created_by": "github_actions",
+            "project": "ecv_dane_calidad_vida"
+          }
+        }
+        EOF
+
+        create_response=$(curl -s -X POST \
+          -H "Authorization: Bearer $TOKEN" \
+          -H "Content-Type: application/json" \
+          -d @workflow_config.json \
+          "$HOST/api/2.1/jobs/create")
+
+        echo "Workflow creation response: $create_response"
+
+        job_id=$(echo "$create_response" | jq -r '.job_id')
+
+        if [ "$job_id" != "" ] && [ "$job_id" != "null" ]; then
+          echo "✅ Workflow 'WF_PROD_ECV_DANE' creado exitosamente con ID: $job_id"
+
+          workflow_details=$(curl -s -X GET \
+            -H "Authorization: Bearer $TOKEN" \
+            "$HOST/api/2.1/jobs/get?job_id=$job_id")
+
+          echo "Detalles del workflow:"
+          echo "$workflow_details" | jq '.settings | {name, tasks: (.tasks | map({task_key, notebook_task: .notebook_task.notebook_path}))}'
+        else
+          echo "❌ Error al crear el workflow"
+          echo "Response completo: $create_response"
+          exit 1
+        fi
+
+    - name: Validate Workflow Configuration
+      run: |
+        HOST=${{ secrets.DATABRICKS_HOST }}
+        TOKEN=${{ secrets.DATABRICKS_TOKEN }}
+        WORKFLOW_NAME="WF_PROD_ECV_DANE"
+
+        echo "Validando la configuracion del workflow creado..."
+
+        workflows_list=$(curl -s -X GET \
+          -H "Authorization: Bearer $TOKEN" \
+          "$HOST/api/2.1/jobs/list")
+
+        job_id=$(echo "$workflows_list" | jq -r --arg name "$WORKFLOW_NAME" '.jobs[]? | select(.settings.name == $name) | .job_id')
+
+        if [ "$job_id" != "" ] && [ "$job_id" != "null" ]; then
+          echo "✅ Workflow encontrado con ID: $job_id"
+
+          job_details=$(curl -s -X GET \
+            -H "Authorization: Bearer $TOKEN" \
+            "$HOST/api/2.1/jobs/get?job_id=$job_id")
+
+          echo "Resumen del workflow:"
+          echo "Nombre: $(echo "$job_details" | jq -r '.settings.name')"
+          echo "Numero de tareas: $(echo "$job_details" | jq '.settings.tasks | length')"
+          echo ""
+          echo "Tareas configuradas:"
+          echo "$job_details" | jq -r '.settings.tasks[] | "  - " + .task_key + " -> " + .notebook_task.notebook_path'
+          echo ""
+          echo "Dependencias:"
+          echo "$job_details" | jq -r '.settings.tasks[] | select(.depends_on != null) | "  " + .task_key + " depende de: " + ([.depends_on[].task_key] | join(", "))'
+          echo ""
+          echo "Cluster ID: $(echo "$job_details" | jq -r '.settings.tasks[0].existing_cluster_id')"
+        else
+          echo "❌ No se pudo encontrar el workflow creado"
+          exit 1
+        fi
+
+    - name: Execute Workflow WF_PROD_ECV_DANE
+      run: |
+        HOST=${{ secrets.DATABRICKS_HOST }}
+        TOKEN=${{ secrets.DATABRICKS_TOKEN }}
+        WORKFLOW_NAME="WF_PROD_ECV_DANE"
+
+        echo "Ejecutando workflow: $WORKFLOW_NAME"
+
+        workflows_list=$(curl -s -X GET \
+          -H "Authorization: Bearer $TOKEN" \
+          "$HOST/api/2.1/jobs/list")
+
+        job_id=$(echo "$workflows_list" | jq -r --arg name "$WORKFLOW_NAME" '.jobs[]? | select(.settings.name == $name) | .job_id')
+
+        if [ "$job_id" != "" ] && [ "$job_id" != "null" ]; then
+          echo "✅ Workflow encontrado con ID: $job_id"
+
+          run_response=$(curl -s -X POST \
+            -H "Authorization: Bearer $TOKEN" \
+            -H "Content-Type: application/json" \
+            -d "{\"job_id\": $job_id}" \
+            "$HOST/api/2.1/jobs/run-now")
+
+          run_id=$(echo "$run_response" | jq -r '.run_id')
+
+          if [ "$run_id" != "" ] && [ "$run_id" != "null" ]; then
+            echo "Workflow ejecutado exitosamente!"
+            echo "Run ID: $run_id"
+            echo "WORKFLOW_RUN_ID=$run_id" >> $GITHUB_ENV
+            echo "WORKFLOW_JOB_ID=$job_id" >> $GITHUB_ENV
+            echo "URL del workflow: $HOST/jobs/$job_id/runs/$run_id"
+          else
+            echo "❌ Error al ejecutar el workflow"
+            echo "Response: $run_response"
+            exit 1
+          fi
+        else
+          echo "❌ No se pudo encontrar el workflow para ejecutar"
+          exit 1
+        fi
+
+    - name: Monitor Workflow Execution
+      run: |
+        HOST=${{ secrets.DATABRICKS_HOST }}
+        TOKEN=${{ secrets.DATABRICKS_TOKEN }}
+        RUN_ID="${{ env.WORKFLOW_RUN_ID }}"
+        JOB_ID="${{ env.WORKFLOW_JOB_ID }}"
+
+        echo "Monitoreando ejecucion del workflow..."
+        echo "Job ID: $JOB_ID"
+        echo "Run ID: $RUN_ID"
+
+        max_wait_time=2400
+        wait_time=0
+        check_interval=60
+
+        while [ $wait_time -lt $max_wait_time ]; do
+          run_status=$(curl -s -X GET \
+            -H "Authorization: Bearer $TOKEN" \
+            "$HOST/api/2.1/jobs/runs/get?run_id=$RUN_ID")
+
+          state=$(echo "$run_status" | jq -r '.state.life_cycle_state')
+          result_state=$(echo "$run_status" | jq -r '.state.result_state // "RUNNING"')
+
+          echo "Estado actual: $state ($result_state) - Tiempo transcurrido: ${wait_time}s"
+          echo "$run_status" | jq -r '.tasks[]? | "  " + .task_key + ": " + .state.life_cycle_state + " (" + (.state.result_state // "RUNNING") + ")"'
+
+          case "$state" in
+            "TERMINATED")
+              if [ "$result_state" = "SUCCESS" ]; then
+                echo ""
+                echo "======================================================="
+                echo "WORKFLOW COMPLETADO EXITOSAMENTE"
+                echo "======================================================="
+                echo ""
+                echo "Resumen de ejecucion:"
+                echo "$run_status" | jq -r '.tasks[]? | "  OK " + .task_key + " -> " + (.state.result_state // "SUCCESS")'
+
+                start_time=$(echo "$run_status" | jq -r '.start_time')
+                end_time=$(echo "$run_status" | jq -r '.end_time')
+                if [ "$start_time" != "null" ] && [ "$end_time" != "null" ]; then
+                  duration=$((($end_time - $start_time) / 1000))
+                  echo "  Duracion total: ${duration} segundos"
+                fi
+                exit 0
+              else
+                echo "❌ Workflow termino con errores: $result_state"
+                echo "$run_status" | jq -r '.tasks[]? | "  " + .task_key + ": " + (.state.result_state // "UNKNOWN")'
+                exit 1
+              fi
+              ;;
+            "INTERNAL_ERROR"|"SKIPPED")
+              echo "❌ Workflow fallo con estado: $state"
+              exit 1
+              ;;
+            *)
+              echo "Workflow aun ejecutandose..."
+              ;;
+          esac
+
+          sleep $check_interval
+          wait_time=$((wait_time + check_interval))
+        done
+
+        echo "Timeout: El workflow aun se esta ejecutando despues de $max_wait_time segundos"
+        echo "Verifica el estado en: $HOST/jobs/$JOB_ID/runs/$RUN_ID"
+        exit 0
+
+    - name: Clean up
+      run: rm -f workflow_config.json
+
+    - name: Done
+      run: |
+        echo "======================================================="
+        echo "DESPLIEGUE ECV DANE COMPLETADO"
+        echo "======================================================="
+        echo ""
+        echo "Resumen:"
+        echo "  Notebooks desplegados:"
+        echo "    - nb_00_setup (Preparacion ambiente)"
+        echo "    - nb_01_bronze_ingesta_v4 (Extract - 3 fuentes)"
+        echo "    - nb_02_silver_transform_v3 (Transform)"
+        echo "    - nb_03_gold_dimensiones_v3 (Load - dimensiones)"
+        echo "    - nb_04_gold_hechos_v2 (Load - hechos y KPIs)"
+        echo "    - nb_05_serving (Serving - Azure SQL)"
+        echo "  Workflow creado: WF_PROD_ECV_DANE"
+        echo "  Tareas configuradas: 6 (secuenciales)"
+        echo "  Catalogo destino: ecv_prod"
+        echo "  Workflow ejecutado y completado"
+        echo ""
+        echo "Accede a Databricks para ver resultados detallados"
+        echo "======================================================="
