@@ -1,0 +1,33 @@
+name: Despliegue de ADF a Producción
+
+# Esto le dice a GitHub que ejecute el flujo CADA VEZ que haya un cambio en 'main'
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy-adf:
+    runs-on: ubuntu-latest
+    steps:
+      # 1. Descargamos las plantillas listas para producción (que están en adf_publish)
+      - name: Descargar rama adf_publish
+        uses: actions/checkout@v3
+        with:
+          ref: 'adf_publish'
+
+      # 2. Nos conectamos a tu cuenta de Azure de forma segura
+      - name: Iniciar sesión en Azure
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      # 3. Desplegamos las plantillas en el ADF de Producción
+      - name: Desplegar Plantilla ARM en Producción
+        uses: azure/arm-deploy@v1
+        with:
+          # REEMPLAZA ESTOS VALORES CON LOS DE TU ENTORNO DE PRODUCCIÓN
+          resourceGroupName: 'NOMBRE_DE_TU_RESOURCE_GROUP_PROD' 
+          # Nota: Revisa en tu rama adf_publish el nombre exacto de la carpeta que creó ADF
+          template: './TU_ADF_DE_DESARROLLO/ARMTemplateForFactory.json'
+          parameters: './TU_ADF_DE_DESARROLLO/ARMTemplateParametersForFactory.json factoryName=TU_ADF_DE_PRODUCCION'
