@@ -1,0 +1,98 @@
+{
+	"$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+	"contentVersion": "1.0.0.0",
+	"parameters": {
+		"factoryName": {
+			"type": "string",
+			"metadata": "Data Factory name",
+			"defaultValue": "adf-ecv-dev"
+		},
+		"ls_adls_raw_accountKey": {
+			"type": "secureString",
+			"metadata": "Secure string for 'accountKey' of 'ls_adls_raw'"
+		},
+		"ls_databricks_ecv_accessToken": {
+			"type": "secureString",
+			"metadata": "Secure string for 'accessToken' of 'ls_databricks_ecv'"
+		},
+		"AzureSqlDatabase1_properties_typeProperties_server": {
+			"type": "string",
+			"defaultValue": "sql-ecv.database.windows.net"
+		},
+		"AzureSqlDatabase1_properties_typeProperties_database": {
+			"type": "string",
+			"defaultValue": "ecv-dev"
+		},
+		"AzureSqlDatabase1_properties_typeProperties_userName": {
+			"type": "string",
+			"defaultValue": "admin_sql_ecv"
+		},
+		"ls_adls_raw_properties_typeProperties_url": {
+			"type": "string",
+			"defaultValue": "https://saencuestadev.dfs.core.windows.net/"
+		},
+		"ls_databricks_ecv_properties_typeProperties_existingClusterId": {
+			"type": "string",
+			"defaultValue": "0530-222447-b38bo4o2"
+		},
+		"ls_keyvault_ecv_properties_typeProperties_baseUrl": {
+			"type": "string",
+			"defaultValue": "https://akv-ecv.vault.azure.net/"
+		},
+		"containerUri": {
+			"type": "string",
+			"metadata": "URI to storage account containing linked ARM templates"
+		},
+		"containerSasToken": {
+			"type": "string",
+			"metadata": "Sas token to storage account containing linked ARM templates"
+		}
+	},
+	"variables": {
+		"factoryId": "[concat('Microsoft.DataFactory/factories/', parameters('factoryName'))]"
+	},
+	"resources": [
+		{
+			"name": "adf-ecv-dev_ArmTemplate_0",
+			"type": "Microsoft.Resources/deployments",
+			"apiVersion": "2024-03-01",
+			"properties": {
+				"mode": "incremental",
+				"templateLink": {
+					"uri": "[concat(parameters('containerUri'), '/ArmTemplate_0.json', parameters('containerSasToken'))]",
+					"contentVersion": "1.0.0.0"
+				},
+				"parameters": {
+					"factoryName": {
+						"value": "[parameters('factoryName')]"
+					},
+					"ls_adls_raw_accountKey": {
+						"value": "[parameters('ls_adls_raw_accountKey')]"
+					},
+					"ls_databricks_ecv_accessToken": {
+						"value": "[parameters('ls_databricks_ecv_accessToken')]"
+					},
+					"ls_adls_raw_properties_typeProperties_url": {
+						"value": "[parameters('ls_adls_raw_properties_typeProperties_url')]"
+					},
+					"ls_databricks_ecv_properties_typeProperties_existingClusterId": {
+						"value": "[parameters('ls_databricks_ecv_properties_typeProperties_existingClusterId')]"
+					},
+					"ls_keyvault_ecv_properties_typeProperties_baseUrl": {
+						"value": "[parameters('ls_keyvault_ecv_properties_typeProperties_baseUrl')]"
+					},
+					"AzureSqlDatabase1_properties_typeProperties_server": {
+						"value": "[parameters('AzureSqlDatabase1_properties_typeProperties_server')]"
+					},
+					"AzureSqlDatabase1_properties_typeProperties_database": {
+						"value": "[parameters('AzureSqlDatabase1_properties_typeProperties_database')]"
+					},
+					"AzureSqlDatabase1_properties_typeProperties_userName": {
+						"value": "[parameters('AzureSqlDatabase1_properties_typeProperties_userName')]"
+					}
+				}
+			},
+			"dependsOn": []
+		}
+	]
+}
