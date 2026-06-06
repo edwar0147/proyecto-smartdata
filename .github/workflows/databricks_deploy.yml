@@ -248,7 +248,7 @@ jobs:
                 "source": "WORKSPACE",
                 "base_parameters": {
                   "entorno": "prod",
-                  "secret_scope": "kv-ecv",
+                  "secret_scope": "akv-ecv",
                   "modo_escritura": "overwrite"
                 }
               },
