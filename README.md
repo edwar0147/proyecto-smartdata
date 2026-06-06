@@ -1,4 +1,4 @@
-# Pipeline Medallón — Encuesta de Calidad de Vida (ECV) DANE Colombia
+# Encuesta de Calidad de Vida (ECV) DANE Colombia - Medallón - Databricks
 
 Arquitectura Medallion en Azure Databricks con orquestación híbrida ADF + Databricks Workflows y CI/CD completo.
 
@@ -8,7 +8,7 @@ Pipeline ETL que transforma los microdatos públicos de la **Encuesta de Calidad
 
 ## 🎯 Descripción
 
-Este proyecto migra un trabajo académico de BI originalmente construido con SQL Server + SSIS + SSAS (2021) a una **arquitectura medallón moderna en Azure**, demostrando:
+Este proyecto migra un trabajo de BI que originalmente construí con SQL Server + SSIS + SSAS (2021) a una **arquitectura medallón moderna en Azure**, demostrando:
 
 - Ingesta multi-fuente heterogénea (CSV + Excel + MySQL)
 - Transformación y limpieza con PySpark 
