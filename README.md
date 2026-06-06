@@ -183,16 +183,16 @@ Modelo dimensional estrella optimizado para análisis.
 
 ```
                           ┌─────────────────┐
-                          │    fac_ecv       │
-                          │   309.512 filas  │
+                          │    fac_ecv      │
+                          │                 │
   ┌────────────────┐      │                 │      ┌────────────────┐
   │  dim_tiempo    │◄─────┤ sk_tiempo       │      │ dim_ubicacion  │
-  │   2 años       │      │ sk_persona  ────┼─────►│  9 regiones    │
+  │                │      │ sk_persona  ────┼─────►│                │
   └────────────────┘      │ sk_vivienda ────┼──┐   └────────────────┘
                           │ sk_educacion────┼┐ │
   ┌────────────────┐      │ sk_ubicacion    ││ │   ┌────────────────┐
   │  dim_persona   │◄─────┤                 ││ └──►│ dim_vivienda   │
-  │  309.512       │      │ + métricas      ││     │  97.214        │
+  │                │      │ + métricas      ││     │                │
   └────────────────┘      └─────────────────┘│     └────────────────┘
                                              │
                           ┌──────────────────┘
@@ -200,7 +200,7 @@ Modelo dimensional estrella optimizado para análisis.
                           ▼
                    ┌────────────────┐
                    │ dim_educacion  │
-                   │  285.483       │
+                   │                │
                    └────────────────┘
 ```
 
@@ -255,36 +255,6 @@ DIVIPOLA consolidado desde Excel (499) + MySQL (623) = 1.122 municipios. Anti-jo
 
 ---
 
-## 📊 KPIs Principales
-
-### Margen de Cobertura de Becas
-
-| Año | Total Estudiantes | Total Becados | Margen Cobertura | Crecimiento |
-|-----|------------------|---------------|------------------|-------------|
-| 2017 | 6.991 | 97 | 1.39% | — |
-| 2018 | 73.140 | — | — | — |
-
-### Migración Interna
-
-| Métrica | Valor |
-|---------|-------|
-| Total personas | 309.512 |
-| Migrantes (nacidos en otro municipio/país) | 105.288 (34%) |
-| Migrantes internos | 97.907 (31.6%) |
-| Extranjeros | 7.381 (2.4%) |
-| Cobertura DIVIPOLA | 100% (97.907 de 97.907) |
-
-### Top 5 Departamentos Expulsores de Migrantes
-
-| Departamento | Migrantes |
-|-------------|-----------|
-| Antioquia | 6.570 |
-| Valle del Cauca | 6.308 |
-| Bogotá | 5.186 |
-| Boyacá | 5.127 |
-| Tolima | 4.819 |
-
----
 
 ## 🚀 CI/CD
 
@@ -467,42 +437,6 @@ proyecto-smartdata/
 
 ---
 
-## 🔍 Verificación de Integridad
-
-El pipeline incluye validaciones automáticas en cada ejecución:
-
-### Surrogate Keys (cero duplicados, cero colisiones)
-
-```
-dim_persona     : total=309.512, únicos=309.512, nulos=0 → OK
-dim_vivienda    : total= 97.214, únicos= 97.214, nulos=0 → OK
-dim_educacion   : total=285.483, únicos=285.483, nulos=0 → OK
-dim_ubicacion   : total=      9, únicos=      9, nulos=0 → OK
-dim_tiempo      : total=      2, únicos=      2, nulos=0 → OK
-```
-
-### Integridad Referencial (100%)
-
-```
-sk_persona     : sin_match=0 (OK), nulos=     0 ( 0.0%) → OK
-sk_vivienda    : sin_match=0 (OK), nulos=     0 ( 0.0%) → OK
-sk_educacion   : sin_match=0 (OK), nulos=24.029 ( 7.8%) → OK (menores 5 años)
-sk_tiempo      : sin_match=0 (OK), nulos=     0 ( 0.0%) → OK
-sk_ubicacion   : sin_match=0 (OK), nulos=26.500 ( 8.6%) → OK (2017 sin REGION)
-```
-
-### Sincronización Gold → Azure SQL (8 tablas coinciden 100%)
-
-```
-dim_tiempo              :    2 =    2   ✅
-dim_ubicacion           :    9 =    9   ✅
-dim_persona             : 309.512 = 309.512  ✅
-dim_vivienda            :  97.214 =  97.214  ✅
-dim_educacion           : 285.483 = 285.483  ✅
-fac_ecv                 : 309.512 = 309.512  ✅
-kpi_becas_anuales       :    2 =    2   ✅
-kpi_condiciones_vida    :    9 =    9   ✅
-```
 
 ---
 
