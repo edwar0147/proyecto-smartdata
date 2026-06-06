@@ -1,10 +1,8 @@
-<img width="2816" height="1536" alt="Arquitectura" src="https://github.com/user-attachments/assets/77a96a83-9a65-4b48-8ab2-bb1fb9db92c9" /># Pipeline Medallón — Encuesta de Calidad de Vida (ECV) DANE Colombia
+# Pipeline Medallón — Encuesta de Calidad de Vida (ECV) DANE Colombia
 
 Arquitectura Medallion en Azure Databricks con orquestación híbrida ADF + Databricks Workflows y CI/CD completo.
 
 Pipeline ETL que transforma los microdatos públicos de la **Encuesta de Calidad de Vida (ECV) del DANE Colombia** (2017-2018), implementando la Arquitectura Medallion (Bronze → Silver → Gold) en Azure Databricks con Unity Catalog, modelo dimensional estrella y despliegue automatizado via GitHub Actions.
-
-![Arquitectura del proyecto](evidencias/arquitectura_proyecto.png)
 
 ---
 
@@ -13,7 +11,7 @@ Pipeline ETL que transforma los microdatos públicos de la **Encuesta de Calidad
 Este proyecto migra un trabajo académico de BI originalmente construido con SQL Server + SSIS + SSAS (2021) a una **arquitectura medallón moderna en Azure**, demostrando:
 
 - Ingesta multi-fuente heterogénea (CSV + Excel + MySQL)
-- Transformación y limpieza con PySpark puro (sin Spark SQL)
+- Transformación y limpieza con PySpark 
 - Modelo dimensional Kimball con 5 dimensiones y tabla de hechos
 - Serving layer hacia Azure SQL Database para consumo desde Power BI
 - Orquestación híbrida Azure Data Factory + Databricks Workflows
@@ -327,7 +325,8 @@ GitHub Actions
 | Databricks Workflow | `pl_ecv_databricks` | `WF_PROD_ECV_DANE` |
 | Notebooks folder | `/proyecto-smartdata/proceso/` | `/proyecto-smartdata-prod/proceso/` |
 
-![GitHub Actions](evidencias/github_actions_deploy.png)
+<img width="1919" height="731" alt="Captura de pantalla 2026-06-06 173232" src="https://github.com/user-attachments/assets/6874a9ad-6149-4546-90e8-51878e48971a" />
+
 
 ---
 
@@ -337,13 +336,15 @@ GitHub Actions
 
 Análisis de cobertura educativa, distribución por niveles y apoyos económicos (becas, subsidios, créditos).
 
-![Dashboard Educación](dashboard/dashboard_educacion.png)
+
 
 ### Dashboard Condiciones de Vida
 
 Análisis de condiciones habitacionales por región: servicios públicos, riesgos de desastres naturales, materiales de construcción.
 
-![Dashboard Condiciones de Vida](dashboard/dashboard_condiciones_vida.png)
+<img width="709" height="430" alt="image" src="https://github.com/user-attachments/assets/573c0405-5618-4146-9c41-45b794079873" />
+<img width="712" height="404" alt="image" src="https://github.com/user-attachments/assets/b66df58e-2459-4774-ab63-1eece24f91f8" />
+
 
 ---
 
