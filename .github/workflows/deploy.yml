@@ -138,7 +138,7 @@ jobs:
                 }
               },
               "existing_cluster_id": "$CLUSTER_ID",
-              "timeout_seconds": 300,
+              "timeout_seconds": 900,
               "max_retries": 2
             },
             {
