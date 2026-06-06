@@ -112,29 +112,29 @@ ADF coordina servicios heterogéneos (Storage, Databricks, Azure SQL) mientras q
 
 El proyecto consume datos de **3 fuentes heterogéneas**:
 
-| Fuente | Tipo | Descripción | Registros |
-|--------|------|-------------|-----------|
-| **ECV 2017** | CSV (ADLS Gen2) | Encuesta Calidad de Vida DANE — 3 archivos | 59.649 |
-| **ECV 2018** | CSV (ADLS Gen2) | Encuesta Calidad de Vida DANE — 3 archivos | 632.560 |
-| **DIVIPOLA Excel** | Excel (ADLS Gen2) | Maestro departamentos y municipios | 532 |
-| **DIVIPOLA MySQL** | MySQL (Azure DB) | Municipios complementarios | 623 |
+| Fuente | Tipo | Descripción |
+|--------|------|-------------|
+| **ECV 2017** | CSV (ADLS Gen2) | Encuesta Calidad de Vida DANE — 3 archivos |
+| **ECV 2018** | CSV (ADLS Gen2) | Encuesta Calidad de Vida DANE — 3 archivos |
+| **DIVIPOLA Excel** | Excel (ADLS Gen2) | Maestro departamentos y municipios |
+| **DIVIPOLA MySQL** | MySQL (Azure DB) | Municipios complementarios |
 | **Total** | | | **693.364** |
 
 ### Archivos CSV del DANE por año
 
-| Archivo | Descripción | 2017 | 2018 |
-|---------|-------------|------|------|
-| `Caracteristicas_y_composicion_del_hogar` | Datos demográficos por persona | 26.500 | 283.012 |
-| `Datos_de_la_vivienda_Actualizada` | Características físicas de viviendas | 8.501 | 88.713 |
-| `Educacion` | Variables educativas por persona | 24.648 | 260.835 |
+| Archivo | Descripción |
+|---------|-------------|
+| `Caracteristicas_y_composicion_del_hogar` | Datos demográficos por persona |
+| `Datos_de_la_vivienda_Actualizada` | Características físicas de viviendas |
+| `Educacion` | Variables educativas por persona |
 
 Fuente oficial: [DANE — Microdatos ECV](https://microdatos.dane.gov.co/index.php/catalog/544)
 
 ### Catálogo DIVIPOLA consolidado
 
 Se consolidaron **1.122 municipios** de Colombia desde 2 fuentes:
-- **Excel**: 499 municipios (maestro DIVIPOLA del DANE)
-- **MySQL**: 623 municipios complementarios
+- **Excel**: 
+- **MySQL**: 
 
 La consolidación usa anti-join para evitar duplicados, priorizando Excel como fuente primaria.
 
@@ -151,14 +151,14 @@ Ingesta cruda sin transformaciones. Los datos llegan tal cual de las fuentes.
 - **Particionamiento**: por `anio_encuesta`
 - **Normalización**: nombres de columnas compatibles con Delta (sin tildes, espacios)
 
-| Tabla Bronze | Fuente | Registros |
-|-------------|--------|-----------|
-| `caract_comp_hogar` | CSV DANE | 309.512 |
-| `datos_vivienda` | CSV DANE | 97.214 |
-| `educacion` | CSV DANE | 285.483 |
-| `divipola_departamentos` | Excel | 33 |
-| `divipola_municipios_excel` | Excel | 499 |
-| `divipola_municipios_mysql` | MySQL | 623 |
+| Tabla Bronze | Fuente |
+|-------------|--------|
+| `caract_comp_hogar` | CSV DANE |
+| `datos_vivienda` | CSV DANE |
+| `educacion` | CSV DANE |
+| `divipola_departamentos` | Excel |
+| `divipola_municipios_excel` | Excel |
+| `divipola_municipios_mysql` | MySQL |
 
 ### 🥈 Capa Silver (Transform)
 
@@ -169,13 +169,13 @@ Limpieza, decodificación de catálogos y conformado de datos. **14 catálogos v
 - **Flags derivados**: `es_migrante`, `vivienda_en_riesgo`, `sin_servicios_basicos`, `recibio_apoyo_educativo`
 - **Enriquecimiento**: lugar de nacimiento decodificado vía DIVIPOLA (100% cobertura)
 
-| Tabla Silver | Descripción | Registros |
-|-------------|-------------|-----------|
-| `ref.divipola` | Catálogo geográfico consolidado | 1.122 |
-| `silver.vivienda` | Viviendas con servicios y riesgos | 97.214 |
-| `silver.hogar` | Personas con demografía y migración | 309.512 |
-| `silver.educacion` | Registros educativos con apoyos | 285.483 |
-| `silver.persona` | Vista consolidada persona | 309.512 |
+| Tabla Silver | Descripción |
+|-------------|-------------|
+| `ref.divipola` | Catálogo geográfico consolidado |
+| `silver.vivienda` | Viviendas con servicios y riesgos |
+| `silver.hogar` | Personas con demografía y migración |
+| `silver.educacion` | Registros educativos con apoyos |
+| `silver.persona` | Vista consolidada persona |
 
 ### 🥇 Capa Gold (Load)
 
