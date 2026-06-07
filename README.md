@@ -2,7 +2,7 @@
 
 Arquitectura Medallion en Azure Databricks con orquestación híbrida ADF + Databricks Workflows y CI/CD completo.
 
-Pipeline ETL que transforma los microdatos públicos de la **Encuesta de Calidad de Vida (ECV) del DANE Colombia** (2017-2018), implementando la Arquitectura Medallion (Bronze → Silver → Gold) en Azure Databricks con Unity Catalog, modelo dimensional estrella y despliegue automatizado via GitHub Actions.
+Pipeline ETL que transforma los microdatos públicos de la **Encuesta de Calidad de Vida (ECV) del DANE Colombia** (2018-2025), implementando la Arquitectura Medallion (Bronze → Silver → Gold) en Azure Databricks con Unity Catalog, modelo dimensional estrella y despliegue automatizado via GitHub Actions. se procesan 2,255,327 de registros
 
 ---
 
@@ -55,7 +55,8 @@ Este proyecto migra un trabajo de BI que originalmente construí con SQL Server 
                         └──────────────────────────────────────────────────┘
 ```
 
-<img width="2816" height="1536" alt="Arquitectura" src="https://github.com/user-attachments/assets/e79a0030-24e3-4e19-b709-777d9aa6d188" />
+<img width="1408" height="768" alt="arquitectura" src="https://github.com/user-attachments/assets/a35a3bbf-8cc9-41b8-9a55-a9b0f28b9b37" />
+
 
 
 
@@ -317,7 +318,10 @@ Análisis de cobertura educativa, distribución por niveles y apoyos económicos
 Análisis de condiciones habitacionales por región: servicios públicos, riesgos de desastres naturales, materiales de construcción.
 
 <img width="709" height="430" alt="image" src="https://github.com/user-attachments/assets/573c0405-5618-4146-9c41-45b794079873" />
-<img width="712" height="404" alt="image" src="https://github.com/user-attachments/assets/b66df58e-2459-4774-ab63-1eece24f91f8" />
+<img width="721" height="399" alt="image" src="https://github.com/user-attachments/assets/2269f65b-4141-45b0-a0d1-4112b0c2e95a" />
+<img width="716" height="431" alt="image" src="https://github.com/user-attachments/assets/1847dd24-87bd-48af-aaf6-4fe7119ea5cb" />
+
+
 
 
 ---
