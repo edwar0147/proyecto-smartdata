@@ -398,3 +398,8 @@ display(df_resumen)
 # COMMAND ----------
 
 dbutils.notebook.exit(f"SERVING_OK run_id={run_id} entorno={entorno}")
+
+# COMMAND ----------
+
+# MAGIC %sql
+# MAGIC select * from ecv_dev.gold.dim_tiempo

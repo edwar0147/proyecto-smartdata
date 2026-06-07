@@ -686,6 +686,10 @@ try:
         ["directorio", "secuencia_encuesta", "secuencia_p", "orden", "anio_encuesta"]
     )
 
+    # llave_hogar puede no existir en años recientes (ej: 2025)
+    if "llave_hogar" not in df_silver.columns:
+        df_silver = df_silver.withColumn("llave_hogar", F.lit(None).cast(StringType()))
+
     df_silver = df_silver.select(
         "directorio", "secuencia_encuesta", "secuencia_p", "orden", "anio_encuesta",
         "sexo", "edad", "rango_edad", "estado_civil", "raza", "llave_hogar",
@@ -810,6 +814,10 @@ try:
     df_silver = df.dropDuplicates(
         ["directorio", "secuencia_encuesta", "secuencia_p", "orden", "anio_encuesta"]
     )
+ # llave_hogar puede no existir en años recientes (ej: 2025)
+    if "llave_hogar" not in df_silver.columns:
+        df_silver = df_silver.withColumn("llave_hogar", F.lit(None).cast(StringType()))
+
 
     df_silver = df_silver.select(
         "directorio", "secuencia_encuesta", "secuencia_p", "orden", "anio_encuesta",

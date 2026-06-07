@@ -580,3 +580,15 @@ print("=" * 70)
 # COMMAND ----------
 
 dbutils.notebook.exit(f"GOLD_FACT_OK run_id={run_id}")
+
+# COMMAND ----------
+
+spark.table(f"{catalog_name}.gold.fac_ecv") \
+    .groupBy("anio_encuesta") \
+    .agg(
+        F.sum("total_personas").alias("personas"),
+        F.sum("total_estudiante").alias("estudiantes"),
+        F.sum("total_becados").alias("becados"),
+    ) \
+    .orderBy("anio_encuesta") \
+    .show(50, truncate=False)
