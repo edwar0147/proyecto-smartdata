@@ -169,7 +169,7 @@ jobs:
                 "source": "WORKSPACE",
                 "base_parameters": {
                   "entorno": "prod",
-                  "anios": "2017,2018",
+                  "anios": "2017,2018,2019,2020,2021,2022,2023,2024,2025",
                   "cargar_divipola": "si",
                   "cargar_mysql": "si"
                 }

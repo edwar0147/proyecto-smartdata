@@ -7,8 +7,7 @@
 # MAGIC **Autor:** Eduar Alonso Caro Montoya
 # MAGIC
 # MAGIC ## Objetivo
-# MAGIC Construir las dimensiones del modelo estrella, evolucionando el modelo del cubo SSAS
-# MAGIC original 2021 hacia un modelo limpio sin snowflaking, con las correcciones identificadas
+# MAGIC Construir las dimensiones del modelo estrella, evolucionando el modelo del cubo SSAS, con las correcciones identificadas
 # MAGIC durante la validación contra el diccionario oficial DANE.
 # MAGIC
 # MAGIC ## Modelo dimensional resultante
