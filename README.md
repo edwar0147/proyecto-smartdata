@@ -2,7 +2,7 @@
 
 Arquitectura Medallion en Azure Databricks con orquestación híbrida ADF + Databricks Workflows y CI/CD completo.
 
-Pipeline ETL que transforma los microdatos públicos de la **Encuesta de Calidad de Vida (ECV) del DANE Colombia** (2018-2025), implementando la Arquitectura Medallion (Bronze → Silver → Gold) en Azure Databricks con Unity Catalog, modelo dimensional estrella y despliegue automatizado via GitHub Actions.
+Pipeline ETL que transforma los microdatos públicos de la **Encuesta de Calidad de Vida (ECV) del DANE Colombia** (2018-2025), implementando la Arquitectura Medallion (Bronze → Silver → Gold) en Azure Databricks con Unity Catalog, modelo dimensional estrella y despliegue automatizado via GitHub Actions. se procesan 2,255,327 de registros
 
 ---
 
